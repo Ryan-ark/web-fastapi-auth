@@ -3,7 +3,19 @@ from decimal import Decimal
 from fastapi.testclient import TestClient
 
 
-def test_product_crud_flow(client: TestClient) -> None:
+def test_product_crud_flow(client: TestClient, create_user) -> None:
+    create_user(
+        email="manager@example.com",
+        full_name="Manager User",
+        password="ChangeMe123!",
+        role="manager",
+    )
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "manager@example.com", "password": "ChangeMe123!"},
+    )
+    assert login_response.status_code == 200
+
     create_response = client.post(
         "/api/v1/products",
         json={

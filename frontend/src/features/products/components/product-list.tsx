@@ -21,11 +21,18 @@ import { Product } from "../types/product";
 type ProductListProps = {
   products: Product[];
   isDeleting: boolean;
+  canManageProducts: boolean;
   onEdit: (product: Product) => void;
   onDelete: (productId: string) => void;
 };
 
-export function ProductList({ products, isDeleting, onEdit, onDelete }: ProductListProps) {
+export function ProductList({
+  products,
+  isDeleting,
+  canManageProducts,
+  onEdit,
+  onDelete,
+}: ProductListProps) {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   if (!products.length) {
@@ -72,34 +79,40 @@ export function ProductList({ products, isDeleting, onEdit, onDelete }: ProductL
             </div>
 
             <div className="product-card__actions">
-              <Button variant="outline" onClick={() => onEdit(product)}>
-                Edit
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" onClick={() => setPendingDeleteId(product.id)}>
-                    Delete
+              {canManageProducts ? (
+                <>
+                  <Button variant="outline" onClick={() => onEdit(product)}>
+                    Edit
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete {product.name}?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This removes the sample item from the catalog. The action is immediate and
-                      meant to demonstrate a destructive flow using shadcn primitives.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setPendingDeleteId(null)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDelete(pendingDeleteId ?? product.id)}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? "Removing..." : "Delete product"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" onClick={() => setPendingDeleteId(product.id)}>
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete {product.name}?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This removes the sample item from the catalog. The action is immediate and
+                          meant to demonstrate a destructive flow using shadcn primitives.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setPendingDeleteId(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => onDelete(pendingDeleteId ?? product.id)}
+                          disabled={isDeleting}
+                        >
+                          {isDeleting ? "Removing..." : "Delete product"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Read-only access</p>
+              )}
             </div>
           </article>
         ))}

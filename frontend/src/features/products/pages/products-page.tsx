@@ -1,5 +1,8 @@
 import { useDeferredValue, useState } from "react";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/features/auth/components/auth-provider";
+
 import { ProductForm } from "../components/product-form";
 import { ProductList } from "../components/product-list";
 import { ProductOverview } from "../components/product-overview";
@@ -8,9 +11,11 @@ import { useCreateProduct, useDeleteProduct, useProducts, useUpdateProduct } fro
 import { Product, ProductFormValues } from "../types/product";
 
 export function ProductsPage() {
+  const { hasRole } = useAuth();
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const deferredSearch = useDeferredValue(search);
+  const canManageProducts = hasRole("admin", "manager");
 
   const productsQuery = useProducts(deferredSearch);
   const createMutation = useCreateProduct(deferredSearch);
@@ -21,6 +26,10 @@ export function ProductsPage() {
   const activeCount = products.filter((product) => product.is_active).length;
 
   async function handleSubmit(values: ProductFormValues) {
+    if (!canManageProducts) {
+      return;
+    }
+
     if (selectedProduct) {
       await updateMutation.mutateAsync({ productId: selectedProduct.id, payload: values });
       setSelectedProduct(null);
@@ -31,6 +40,10 @@ export function ProductsPage() {
   }
 
   async function handleDelete(productId: string) {
+    if (!canManageProducts) {
+      return;
+    }
+
     await deleteMutation.mutateAsync(productId);
     if (selectedProduct?.id === productId) {
       setSelectedProduct(null);
@@ -46,12 +59,25 @@ export function ProductsPage() {
       />
 
       <div className="products-grid">
-        <ProductForm
-          product={selectedProduct}
-          isSubmitting={createMutation.isPending || updateMutation.isPending}
-          onCancelEdit={() => setSelectedProduct(null)}
-          onSubmit={handleSubmit}
-        />
+        {canManageProducts ? (
+          <ProductForm
+            product={selectedProduct}
+            isSubmitting={createMutation.isPending || updateMutation.isPending}
+            onCancelEdit={() => setSelectedProduct(null)}
+            onSubmit={handleSubmit}
+          />
+        ) : (
+          <Card className="border-border/60 bg-card/85">
+            <CardContent className="grid gap-3 p-6">
+              <p className="section-label">Read-only role</p>
+              <h2 className="text-2xl font-semibold">Product changes are disabled</h2>
+              <p className="text-sm text-muted-foreground">
+                Viewer access can inspect the protected catalog, but create, edit, and delete
+                actions remain unavailable.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="products-list-stack">
           <ProductToolbar search={search} onSearchChange={setSearch} />
@@ -67,7 +93,12 @@ export function ProductsPage() {
             <ProductList
               products={products}
               isDeleting={deleteMutation.isPending}
-              onEdit={setSelectedProduct}
+              canManageProducts={canManageProducts}
+              onEdit={(product) => {
+                if (canManageProducts) {
+                  setSelectedProduct(product);
+                }
+              }}
               onDelete={handleDelete}
             />
           ) : null}

@@ -6,9 +6,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from backend.app import models  # noqa: F401
 from backend.app.api.deps import get_db
 from backend.app.core.database import Base
+from backend.app.core.security import hash_password
 from backend.app.main import app
+from backend.app.models.user import User
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
@@ -49,3 +52,21 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
         yield test_client
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def create_user(db_session: Session):
+    def factory(*, email: str, full_name: str, password: str, role: str, is_active: bool = True) -> User:
+        user = User(
+            email=email,
+            full_name=full_name,
+            password_hash=hash_password(password),
+            role=role,
+            is_active=is_active,
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+
+    return factory

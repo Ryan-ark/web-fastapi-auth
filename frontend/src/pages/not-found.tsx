@@ -10,10 +10,10 @@ export function NotFoundPage() {
       <p className="text-muted-foreground">The route does not exist in this sample application.</p>
       <div className="flex items-center justify-center gap-3">
         <Button asChild>
-          <Link to="/">Return home</Link>
+          <Link to="/app/dashboard">Open dashboard</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link to="/showcase">Open showcase</Link>
+          <Link to="/login">Go to login</Link>
         </Button>
       </div>
     </main>

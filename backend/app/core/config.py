@@ -12,6 +12,16 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     database_url: str = "postgresql+psycopg://app_user:app_password@127.0.0.1:5433/app_db"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    auth_secret_key: str = "change-me-in-production"
+    access_token_ttl_minutes: int = 15
+    refresh_token_ttl_days: int = 7
+    access_token_cookie_name: str = "access_token"
+    refresh_token_cookie_name: str = "refresh_token"
+    cookie_secure: bool = False
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
+    default_admin_email: str | None = None
+    default_admin_password: str | None = None
+    default_admin_name: str = "Administrator"
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parents[2] / ".env",

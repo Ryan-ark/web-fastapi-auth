@@ -3,8 +3,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_db
+from backend.app.api.deps import get_db, require_roles
 from backend.app.schemas.product import PaginatedProducts, ProductCreate, ProductRead, ProductUpdate
+from backend.app.schemas.user import UserRole
 from backend.app.services.product_service import ProductService
 
 
@@ -20,6 +21,7 @@ def list_products(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=100),
     search: str | None = Query(default=None, min_length=1, max_length=120),
+    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.VIEWER)),
     service: ProductService = Depends(get_product_service),
 ) -> PaginatedProducts:
     return service.list_products(page=page, page_size=page_size, search=search)
@@ -28,6 +30,7 @@ def list_products(
 @router.post("", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
 def create_product(
     payload: ProductCreate,
+    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
     service: ProductService = Depends(get_product_service),
 ) -> ProductRead:
     return service.create_product(payload)
@@ -36,6 +39,7 @@ def create_product(
 @router.get("/{product_id}", response_model=ProductRead)
 def get_product(
     product_id: UUID,
+    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.VIEWER)),
     service: ProductService = Depends(get_product_service),
 ) -> ProductRead:
     return service.get_product(product_id)
@@ -45,6 +49,7 @@ def get_product(
 def update_product(
     product_id: UUID,
     payload: ProductUpdate,
+    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
     service: ProductService = Depends(get_product_service),
 ) -> ProductRead:
     return service.update_product(product_id, payload)
@@ -53,6 +58,7 @@ def update_product(
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_product(
     product_id: UUID,
+    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
     service: ProductService = Depends(get_product_service),
 ) -> Response:
     service.delete_product(product_id)

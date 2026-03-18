@@ -58,6 +58,22 @@ Backend runs on `http://localhost:8000`.
 Project PostgreSQL runs on `localhost:5433`.
 For local development, the frontend talks directly to `http://127.0.0.1:8000/api`.
 
+## Default Account
+
+The backend can bootstrap one default admin account on startup from `backend/.env`.
+
+Sample default admin credentials from [backend/.env.example](C:/Users/LEGION/Documents/React/web-fastapi-auth/backend/.env.example):
+
+- email: `admin@example.com`
+- password: `ChangeMe123!`
+- role: `admin`
+
+Notes:
+
+- This account is only created if `DEFAULT_ADMIN_EMAIL` and `DEFAULT_ADMIN_PASSWORD` are set.
+- The bootstrap is idempotent. If the admin user already exists, it is not recreated.
+- No default `manager` or `viewer` accounts are seeded automatically. Create those from the admin user management page after logging in.
+
 ## Testing
 
 Backend tests:

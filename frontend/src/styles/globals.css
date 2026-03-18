@@ -116,6 +116,10 @@
     @apply flex-1;
   }
 
+  .page-stack {
+    @apply grid gap-6;
+  }
+
   .products-page,
   .products-list-stack,
   .showcase-page,
@@ -152,5 +156,46 @@
 
   .not-found {
     @apply mx-auto grid min-h-[60vh] max-w-xl place-content-center gap-4 text-center;
+  }
+
+  .auth-shell {
+    @apply min-h-screen px-4 py-6 md:px-8;
+  }
+
+  .auth-panel {
+    @apply mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_420px];
+  }
+
+  .protected-header {
+    @apply flex flex-col gap-4 rounded-[2rem] border border-border/60 bg-card/85 px-6 py-6 backdrop-blur md:px-8;
+  }
+
+  .account-panel {
+    @apply flex flex-wrap items-center gap-3 md:justify-end;
+  }
+
+  .nav-strip {
+    @apply flex flex-wrap gap-3 rounded-2xl border border-border/60 bg-card/80 p-3;
+  }
+
+  .nav-pill {
+    @apply rounded-full border border-transparent px-4 py-2 text-sm font-medium text-muted-foreground transition-colors;
+  }
+
+  .nav-pill--active {
+    @apply border-border bg-background text-foreground;
+  }
+
+  .dashboard-grid,
+  .profile-grid {
+    @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .admin-users-grid {
+    @apply grid gap-4 xl:grid-cols-[minmax(280px,360px)_minmax(0,1fr)];
+  }
+
+  .role-toggle-group {
+    @apply flex flex-wrap gap-2;
   }
 }
