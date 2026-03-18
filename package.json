@@ -1,0 +1,19 @@
+{
+  "name": "product-control-center",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "local": "npm run db:up && npm run db:init && npm run dev",
+    "dev": "concurrently -k -n backend,frontend -c green,cyan \"node scripts/run-backend.mjs\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix frontend run build",
+    "test": "node scripts/test-backend.mjs",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:init": "node scripts/migrate-backend.mjs",
+    "stop:local": "node scripts/stop-local-processes.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

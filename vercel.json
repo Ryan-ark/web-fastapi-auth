@@ -1,0 +1,13 @@
+{
+  "buildCommand": "cd frontend && npm install && npx tsc -b && npx vite build --outDir ../backend/app/static",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
+    }
+  ]
+}
