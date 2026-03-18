@@ -123,6 +123,17 @@ Add these before deployment.
 
 ### Required
 
+`AUTH_SECRET_KEY`
+
+- Set this to a strong random secret
+- Do not reuse the sample value from local development
+
+Example:
+
+```env
+AUTH_SECRET_KEY=replace-with-a-long-random-secret
+```
+
 `DATABASE_URL`
 
 - Set this to your Neon pooled connection string
@@ -160,6 +171,47 @@ If you also have a custom domain later:
 
 ```env
 CORS_ORIGINS=https://your-project-name.vercel.app,https://yourdomain.com
+```
+
+`COOKIE_SECURE`
+
+```env
+COOKIE_SECURE=true
+```
+
+`COOKIE_SAMESITE`
+
+Recommended for same-origin Vercel deployment:
+
+```env
+COOKIE_SAMESITE=lax
+```
+
+`DEFAULT_ADMIN_EMAIL`
+
+```env
+DEFAULT_ADMIN_EMAIL=admin@example.com
+```
+
+`DEFAULT_ADMIN_PASSWORD`
+
+```env
+DEFAULT_ADMIN_PASSWORD=replace-this-before-production
+```
+
+`DEFAULT_ADMIN_NAME`
+
+```env
+DEFAULT_ADMIN_NAME=Administrator
+```
+
+Optional token lifetime settings:
+
+```env
+ACCESS_TOKEN_TTL_MINUTES=15
+REFRESH_TOKEN_TTL_DAYS=7
+ACCESS_TOKEN_COOKIE_NAME=access_token
+REFRESH_TOKEN_COOKIE_NAME=refresh_token
 ```
 
 ### Not Required For Production
@@ -200,6 +252,11 @@ Vercel deployment does not automatically run Alembic migrations for this repo.
 You must run the initial migration yourself against Neon.
 
 Without this, deployment may succeed but the app will fail when it tries to read or write the `products` table.
+
+This now also applies to the auth tables:
+
+- `users`
+- `user_sessions`
 
 ## How To Run Migrations Against Neon
 
@@ -251,7 +308,8 @@ Use this order:
 4. Click `Deploy` in Vercel.
 5. Wait for build and function deployment.
 6. Open the deployed site.
-7. Test create, list, update, and delete.
+7. Sign in with the seeded admin account.
+8. Test protected product CRUD and admin pages.
 
 ## What To Expect On First Deploy
 
@@ -261,21 +319,25 @@ If everything is correct:
 - Vercel should publish static assets from `frontend/dist`
 - `/api/v1/health` should respond from FastAPI
 - The homepage should load
-- CRUD should work if the database is migrated
+- The login page should load
+- The default admin account should be able to sign in
+- Protected CRUD should work if the database is migrated
 
 ## Post-Deploy Verification Checklist
 
 Check these in order:
 
 1. Open `https://your-project-name.vercel.app`.
-2. Confirm the UI loads.
+2. Confirm the login UI loads.
 3. Visit `https://your-project-name.vercel.app/api/v1/health`.
 4. Confirm it returns a healthy response.
-5. Create a product in the UI.
-6. Refresh the page.
-7. Confirm the product still exists.
-8. Edit the product.
-9. Delete the product.
+5. Sign in with the admin account from your Vercel env vars.
+6. Open `/app/dashboard`.
+7. Open `/app/products` and create a product.
+8. Refresh the page.
+9. Confirm the product still exists.
+10. Open `/app/admin/users`.
+11. Confirm the admin page loads.
 
 ## If Deployment Fails
 
@@ -310,7 +372,7 @@ Check:
 
 - `DATABASE_URL` is valid
 - The database is reachable
-- The `products` table exists
+- The `products`, `users`, and `user_sessions` tables exist
 
 ### Case 3: Frontend loads but CRUD fails
 
@@ -327,6 +389,23 @@ Check:
 - Neon connection string
 - Alembic migration status
 
+### Case 4: Login returns 401 for the default admin
+
+Likely causes:
+
+- `DEFAULT_ADMIN_EMAIL` was not set
+- `DEFAULT_ADMIN_PASSWORD` was not set
+- The app was deployed before those env vars were added
+- The auth tables were not migrated
+
+Check:
+
+- `DEFAULT_ADMIN_EMAIL` exists in Vercel
+- `DEFAULT_ADMIN_PASSWORD` exists in Vercel
+- `AUTH_SECRET_KEY` exists in Vercel
+- The latest Alembic migration was applied
+- The deployment was redeployed after env vars were added
+
 ## Exact Values To Use In Vercel For This Repo
 
 Use these unless you intentionally change the app:
@@ -334,6 +413,8 @@ Use these unless you intentionally change the app:
 ```env
 APP_ENV=production
 API_V1_PREFIX=/api/v1
+COOKIE_SECURE=true
+COOKIE_SAMESITE=lax
 ```
 
 Use your actual domain here:
@@ -346,6 +427,15 @@ Use your actual Neon connection string here:
 
 ```env
 DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST/DATABASE?sslmode=require
+```
+
+Use a real admin bootstrap account:
+
+```env
+DEFAULT_ADMIN_EMAIL=admin@example.com
+DEFAULT_ADMIN_PASSWORD=replace-this-before-production
+DEFAULT_ADMIN_NAME=Administrator
+AUTH_SECRET_KEY=replace-with-a-long-random-secret
 ```
 
 ## Recommended First Deploy Routine
@@ -363,6 +453,7 @@ If you want the safest path:
 - Local development uses explicit local env files
 - Production should rely on Vercel env vars
 - The frontend should use same-origin `/api` in production
+- Auth uses secure HttpOnly cookies in production
 - The backend is exposed through `api/index.py`
 - Vercel rewrites are already defined in `vercel.json`
 - Keep the Vercel adapter thin; the real app should continue to live under `backend/app/`
